@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "api": "cd api && FLASK_APP=api.py venv/bin/flask run --no-debugger --port=5001"
+    "api": "cd api && venv/bin/flask run --no-debugger --port=5001"
   },
   "dependencies": {
     "ag-grid-community": "^34.0.0",
