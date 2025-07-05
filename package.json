@@ -11,7 +11,9 @@
     "api": "cd api && FLASK_APP=api.py venv/bin/flask run --no-debugger --port=5001"
   },
   "dependencies": {
+    "ag-grid-community": "^34.0.0",
     "react": "^19.1.0",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
