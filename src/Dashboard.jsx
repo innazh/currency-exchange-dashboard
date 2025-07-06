@@ -1,7 +1,16 @@
 import React, { useState, useRef } from 'react';
+
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
+
 import CurrencyExchangeForm from './CurrencyExchangeForm';
 import HistoricalExchangeLineChart from './Chart';
-import { addDays, subMonths, subYears, formatDate } from './utils/dates';
+import { addDays, subMonths, subYears, formatDate } from './lib/dates';
+import { AVAILABLE_CURRENCIES } from './lib/constants.js';
 
 const Dashboard = () => {
   const [fromCurrency, setFromCurrency] = useState('');
@@ -83,7 +92,29 @@ const Dashboard = () => {
   };
 
   return (
-    <div className='max-w-4xl mx-auto p-4 flex flex-col space-y-4'>
+    <div className='max-w-4xl mx-auto mt-4 flex flex-col space-y-4'>
+      <h1 className="mb-4 text-4xl capitalize font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Historical currency exchange <span class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">data dashboard</span></h1>
+
+      <div className="flex flex-wrap gap-2">
+        <p class="text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">Currently available:</p>
+        <TooltipProvider>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(AVAILABLE_CURRENCIES).map(([code, name]) => (
+              <Tooltip key={code}>
+                <TooltipTrigger asChild>
+                  <div className="text-sm text-gray-600 bg-white px-3 py-1 rounded-full border cursor-default">
+                    {code}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>{name}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        </TooltipProvider>
+      </div>
+
       <CurrencyExchangeForm
         fromCurrency={fromCurrency}
         setFromCurrency={setFromCurrency}
