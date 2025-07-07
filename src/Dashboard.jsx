@@ -9,6 +9,7 @@ import {
 
 import CurrencyExchangeForm from './CurrencyExchangeForm';
 import HistoricalExchangeLineChart from './Chart';
+import CurrencyTable from './CurrencyTable';
 import { addDays, subMonths, subYears, formatDate } from './lib/dates';
 import { AVAILABLE_CURRENCIES } from './lib/constants.js';
 
@@ -19,6 +20,7 @@ const Dashboard = () => {
   const [chartData, setChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const lastSubmittedRef = useRef({ from: '', to: '', period: '' });
+  const [tableData, setTableData] = useState({});
 
   const periods = {
     '7 days': 7,
@@ -79,6 +81,8 @@ const Dashboard = () => {
         ],
       });
 
+      setTableData(data.data);
+
       lastSubmittedRef.current = {
         from: fromCurrency,
         to: toCurrency,
@@ -92,11 +96,11 @@ const Dashboard = () => {
   };
 
   return (
-    <div className='max-w-4xl mx-auto mt-4 flex flex-col space-y-4'>
-      <h1 className="mb-4 text-4xl capitalize font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Historical currency exchange <span class="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">data dashboard</span></h1>
+    <div className="max-w-4xl mx-auto mt-4 flex flex-col space-y-4">
+      <h1 className="mb-4 text-4xl capitalize font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Historical currency exchange <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">data dashboard</span></h1>
 
       <div className="flex flex-wrap gap-2">
-        <p class="text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">Currently available:</p>
+        <p className="text-lg font-normal text-gray-500 lg:text-xl dark:text-gray-400">Currently available:</p>
         <TooltipProvider>
           <div className="flex flex-wrap gap-2">
             {Object.entries(AVAILABLE_CURRENCIES).map(([code, name]) => (
@@ -126,6 +130,7 @@ const Dashboard = () => {
         isLoading={isLoading}
       />
       <HistoricalExchangeLineChart chartData={chartData} />
+      {tableData && <CurrencyTable data={tableData} pair={`${fromCurrency}/${toCurrency}`} />}
     </div>
   );
 

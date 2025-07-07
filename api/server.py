@@ -19,36 +19,21 @@ def get_exchange_rates():
     if not pairs:
         return jsonify({"error": "At least one currency pair must be provided"}), 400
     #note: currently not restricting requests to currency pairs other than usd,cad,eur
-    
+
     # parse and validate the dates:
     from_str = request.args.get('from')
     if not from_str:
         return jsonify({"error": "'from' date is required (format: YYYY-MM-DD)"}), 400
     from_date = datetime.strptime(from_str, '%Y-%m-%d').date() # convert to date
-    
+
     today = datetime.now(timezone.utc).date()
 
     two_years_ago = today - relativedelta(years=2) # this is how far back we can go
     if from_date < two_years_ago:
         return jsonify({"error": "this api can only provide the data up to 2 years ago."}), 400
 
-    # handle pagination
-    page = int(request.args.get("page", 1))
-    per_page = int(request.args.get("per_page", 50))
-
-    total_days = (today - from_date).days + 1 # include the 'to' date in the range
-    all_dates = []
-    for i in range(total_days):
-        next_date = from_date + timedelta(days=i)
-        all_dates.append(next_date)
-
-    # Paginate dates
-    start_idx = (page - 1) * per_page
-    end_idx = start_idx + per_page
-    paged_dates = all_dates[start_idx:end_idx]
-
-    paged_from = paged_dates[0].isoformat()
-    paged_to = paged_dates[-1].isoformat()
+    paged_from = from_date.isoformat()
+    paged_to = today.isoformat()
     
     results = {}
     for pair in pairs:
@@ -71,8 +56,5 @@ def get_exchange_rates():
     return jsonify({
         "from": paged_from,
         "to": paged_to,
-        "page": page,
-        "per_page": per_page,
-        "total_days": total_days,
         "data": results
     }), 200

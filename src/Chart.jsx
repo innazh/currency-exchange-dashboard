@@ -20,7 +20,7 @@ const HistoricalExchangeLineChart = ({ chartData }) => {
         <>
             {chartData && (
                 <Card className="p-0">
-                    <Line className='p-4'
+                    <Line className="p-4"
                         data={chartData}
                         options={{
                             responsive: true,
