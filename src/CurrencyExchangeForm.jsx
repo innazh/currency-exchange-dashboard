@@ -31,6 +31,7 @@ const CurrencyExchangeForm = ({
         <Card>
             <CardContent className="flex justify-center flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
                 <ReactSelect
+                className='z-50'
                     isMulti
                     options={CURRENCY_PAIRS.map(pair => ({ value: pair, label: pair }))}
                     value={selectedPairs.map(pair => ({ value: pair, label: pair }))}

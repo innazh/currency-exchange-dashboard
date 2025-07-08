@@ -4,7 +4,7 @@ import { AgGridReact } from 'ag-grid-react';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const CurrencyTable = ({ data, pair }) => {
+const CurrencyTable = ({ data, pairs }) => {
   const [rowData, setRowData] = useState([]);
 
   const [colDefs] = useState([
@@ -18,21 +18,24 @@ const CurrencyTable = ({ data, pair }) => {
     resizable: true,
   };
 
-
   useEffect(() => {
-    if (data && pair && data[pair]) {
-      const transformed = Object.entries(data[pair]).map(([date, rate]) => ({
-        currency: pair,
-        date,
-        rate,
-      }));
+    if (data && Array.isArray(pairs) && pairs.length > 0) {
+      const transformed = pairs.flatMap(pair =>
+        data[pair]
+          ? Object.entries(data[pair]).map(([date, rate]) => ({
+            currency: pair,
+            date,
+            rate,
+          }))
+          : []
+      );
       setRowData(transformed);
     }
-  }, [data, pair]);
+  }, [data, pairs]);
 
   return (
     <>
-    {data && ( 
+      {data && (
         <AgGridReact className='flex-1'
           rowData={rowData}
           columnDefs={colDefs}
@@ -43,7 +46,7 @@ const CurrencyTable = ({ data, pair }) => {
           paginationPageSize={20}
         />
         // https://www.ag-grid.com/react-data-grid/server-side-model-pagination/
-    )}
+      )}
     </>
   );
 };

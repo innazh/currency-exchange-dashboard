@@ -18,8 +18,8 @@ const Dashboard = () => {
   const [reportingPeriod, setReportingPeriod] = useState('');
   const [chartData, setChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const lastSubmittedRef = useRef({ from: '', to: '', period: '' });
-  // const [tableData, setTableData] = useState({});
+  const lastSubmittedRef = useRef({ pairs: '', period: '' });
+  const [tableData, setTableData] = useState({});
 
   const periods = {
     '7 days': 7,
@@ -32,8 +32,9 @@ const Dashboard = () => {
 
   const handleSubmit = async () => {
     // Check if same values were already submitted
+    // Could be optimized so that if only one pair has changed, we just fetch that one pair instead of all pairs
     if (
-      lastSubmittedRef.current.pairs?.join(',') === selectedPairs.join(',') &&
+      lastSubmittedRef.current.pairs === selectedPairs.join(',') &&
       lastSubmittedRef.current.period === reportingPeriod
     ) {
       return;
@@ -86,10 +87,10 @@ const Dashboard = () => {
         datasets,
       });
 
-      // setTableData(data.data);
+      setTableData(data.data);
 
       lastSubmittedRef.current = {
-        pairs: selectedPairs,
+        pairs: selectedPairs.join(','),
         period: reportingPeriod,
       };
     } catch (err) {
@@ -132,7 +133,7 @@ const Dashboard = () => {
         isLoading={isLoading}
       />
       <HistoricalExchangeLineChart chartData={chartData} />
-      {/* {tableData && <CurrencyTable data={tableData} pair={`${fromCurrency}/${toCurrency}`} />} */}
+      {tableData && <CurrencyTable data={tableData} pairs={selectedPairs} />}
     </div>
   );
 
