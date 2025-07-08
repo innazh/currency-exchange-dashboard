@@ -1,17 +1,17 @@
 import time
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import requests
 from datetime import datetime, timedelta, timezone
 from dateutil.relativedelta import relativedelta
 from urllib.parse import urlencode
 
-app = Flask(__name__)
+app = Flask(__name__,  static_folder='../dist', static_url_path='/')
 
 FRANKFURTER_API = "https://api.frankfurter.dev/v1"
 
-@app.route('/api/time')
-def get_current_time():
-    return {'time': time.time()}
+@app.route('/')
+def home():
+    return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/api/rates', methods=['GET'])
 def get_exchange_rates():
