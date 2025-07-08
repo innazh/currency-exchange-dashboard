@@ -25,7 +25,7 @@ const HistoricalExchangeLineChart = ({ chartData }) => {
                         options={{
                             responsive: true,
                             interaction: {
-                                mode: 'nearest',
+                                mode: 'index',
                                 intersect: false,
                             },
                             plugins: {
@@ -33,8 +33,11 @@ const HistoricalExchangeLineChart = ({ chartData }) => {
                                 title: { display: true, text: 'Exchange Rate Over Time' },
                                 tooltip: {
                                     callbacks: {
-                                        title: (context) => `\u2022 ${context[0].parsed.y}`, // Value on top
-                                        label: (context) => `${context.label}`, // Date below
+                                        label: (context) => {
+                                            const datasetLabel = context.dataset.label || '';
+                                            const value = context.parsed.y;
+                                            return `${datasetLabel}: ${value}`;
+                                        },
                                     },
                                     displayColors: false,
                                     bodyFont: { weight: 'normal' },
