@@ -29,6 +29,8 @@ def get_exchange_rates():
     today = datetime.now(timezone.utc).date()
 
     two_years_ago = today - relativedelta(years=2) # this is how far back we can go
+    # note: I noticed a niche error with querying for the 2 years mark around midnught EST time. Proooobably has to do with the timezones.
+    
     if from_date < two_years_ago:
         return jsonify({"error": "this api can only provide the data up to 2 years ago."}), 400
 
