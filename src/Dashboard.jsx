@@ -14,13 +14,12 @@ import { addDays, subMonths, subYears, formatDate } from './lib/dates';
 import { AVAILABLE_CURRENCIES } from './lib/constants.js';
 
 const Dashboard = () => {
-  const [fromCurrency, setFromCurrency] = useState('');
-  const [toCurrency, setToCurrency] = useState('');
+  const [selectedPairs, setSelectedPairs] = useState([]);
   const [reportingPeriod, setReportingPeriod] = useState('');
   const [chartData, setChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const lastSubmittedRef = useRef({ from: '', to: '', period: '' });
-  const [tableData, setTableData] = useState({});
+  // const [tableData, setTableData] = useState({});
 
   const periods = {
     '7 days': 7,
@@ -34,11 +33,9 @@ const Dashboard = () => {
   const handleSubmit = async () => {
     // Check if same values were already submitted
     if (
-      lastSubmittedRef.current.from === fromCurrency &&
-      lastSubmittedRef.current.to === toCurrency &&
+      lastSubmittedRef.current.pairs?.join(',') === selectedPairs.join(',') &&
       lastSubmittedRef.current.period === reportingPeriod
     ) {
-      console.log('Same values already submitted. Skipping fetch.');
       return;
     }
 
@@ -57,35 +54,42 @@ const Dashboard = () => {
       }
 
       const formattedDate = formatDate(startDate);
-      const pair = `${fromCurrency}/${toCurrency}`;
 
-      const res = await fetch(`/api/rates?pair=${pair}&from=${formattedDate}`);
+      const pairParams = selectedPairs.map(pair => `pair=${encodeURIComponent(pair)}`).join('&');
+      const res = await fetch(`/api/rates?${pairParams}&from=${formattedDate}`);
       const data = await res.json();
       console.log('API Response:', data);
 
-      const rates = data.data[pair];
-      const labels = Object.keys(rates);
-      const values = Object.values(rates);
+      const firstPair = selectedPairs[0];
+      const ratesForFirstPair = data.data[firstPair] || {};
+      const labels = Object.keys(ratesForFirstPair);
+
+      const datasets = selectedPairs.map((pair, idx) => {
+        const values = Object.values(data.data[pair] || {});
+        const colors = [
+          'rgb(56, 189, 248)',
+          'rgb(45, 212, 191)',
+          'rgb(5, 150, 105)',
+        ];
+        return {
+          label: pair,
+          data: values,
+          borderColor: colors[idx % colors.length],
+          backgroundColor: `${colors[idx % colors.length].replace('rgb', 'rgba').replace(')', ', 0.2)')}`,
+          tension: 0.2,
+          pointRadius: 2,
+        };
+      });
 
       setChartData({
         labels,
-        datasets: [
-          {
-            label: pair,
-            data: values,
-            borderColor: 'rgb(59, 130, 246)',
-            backgroundColor: 'rgba(59, 130, 246, 0.2)',
-            tension: 0.2,
-            pointRadius: 2,
-          },
-        ],
+        datasets,
       });
 
-      setTableData(data.data);
+      // setTableData(data.data);
 
       lastSubmittedRef.current = {
-        from: fromCurrency,
-        to: toCurrency,
+        pairs: selectedPairs,
         period: reportingPeriod,
       };
     } catch (err) {
@@ -120,17 +124,15 @@ const Dashboard = () => {
       </div>
 
       <CurrencyExchangeForm
-        fromCurrency={fromCurrency}
-        setFromCurrency={setFromCurrency}
-        toCurrency={toCurrency}
-        setToCurrency={setToCurrency}
+        selectedPairs={selectedPairs}
+        setSelectedPairs={setSelectedPairs}
         reportingPeriod={reportingPeriod}
         setReportingPeriod={setReportingPeriod}
         onSubmit={handleSubmit}
         isLoading={isLoading}
       />
       <HistoricalExchangeLineChart chartData={chartData} />
-      {tableData && <CurrencyTable data={tableData} pair={`${fromCurrency}/${toCurrency}`} />}
+      {/* {tableData && <CurrencyTable data={tableData} pair={`${fromCurrency}/${toCurrency}`} />} */}
     </div>
   );
 

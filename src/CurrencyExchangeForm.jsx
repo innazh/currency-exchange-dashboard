@@ -1,20 +1,21 @@
 import React from 'react';
-import { Card, CardContent } from '@components/ui/card';
+// Given time constraints, I have used an existing implementation insread of coding my own:
+import ReactSelect from 'react-select';
+
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@components/ui/select';
+import { Card, CardContent } from '@components/ui/card';
 import { Button } from '@components/ui/button';
-import { ArrowLeftRight } from 'lucide-react';
+
+import { CURRENCY_PAIRS } from './lib/constants.js';
 
 const CurrencyExchangeForm = ({
-    fromCurrency,
-    setFromCurrency,
-    toCurrency,
-    setToCurrency,
+    selectedPairs,
+    setSelectedPairs,
     reportingPeriod,
     setReportingPeriod,
     onSubmit,
-    isLoading = false
+    isLoading = false,
 }) => {
-    const currencies = ['CAD', 'USD', 'EUR'];
     const periods = {
         '7 days': 7,
         '1 month': 1,
@@ -24,51 +25,20 @@ const CurrencyExchangeForm = ({
         '2 years': 2,
     };
 
-    const handleSwap = () => {
-        if (fromCurrency && toCurrency) {
-            const temp = fromCurrency;
-            setFromCurrency(toCurrency);
-            setToCurrency(temp);
-        }
-    };
-
-    const isSubmitDisabled = !fromCurrency || !toCurrency || !reportingPeriod || isLoading;
-    const filteredFromCurrencies = currencies.filter((currency) => currency !== toCurrency);
-    const filteredToCurrencies = currencies.filter((currency) => currency !== fromCurrency);
+    const isSubmitDisabled = !selectedPairs.length || !reportingPeriod || isLoading;
 
     return (
         <Card>
             <CardContent className="flex justify-center flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
-                <Select onValueChange={setFromCurrency} value={fromCurrency}>
-                    <SelectTrigger className="w-full md:w-[120px]">
-                        <SelectValue placeholder="From" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {filteredFromCurrencies.map((currency) => (
-                            <SelectItem key={currency} value={currency}>
-                                {currency}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                <Button variant="ghost" onClick={handleSwap} className="p-2">
-                    <ArrowLeftRight className="w-4 h-4" />
-                </Button>
-
-                <Select onValueChange={setToCurrency} value={toCurrency}>
-                    <SelectTrigger className="w-full md:w-[120px]">
-                        <SelectValue placeholder="To" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {filteredToCurrencies.map((currency) => (
-                            <SelectItem key={currency} value={currency}>
-                                {currency}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
+                <ReactSelect
+                    isMulti
+                    options={CURRENCY_PAIRS.map(pair => ({ value: pair, label: pair }))}
+                    value={selectedPairs.map(pair => ({ value: pair, label: pair }))}
+                    onChange={opts => setSelectedPairs(opts.map(opt => opt.value))}
+                    closeMenuOnSelect={false}
+                    placeholder="Select up to 3 pairs"
+                    isOptionDisabled={() => selectedPairs.length >= 3}
+                />
                 <Select onValueChange={setReportingPeriod} value={reportingPeriod}>
                     <SelectTrigger className="w-full md:w-[160px]">
                         <SelectValue placeholder="Reporting period" />
@@ -81,7 +51,6 @@ const CurrencyExchangeForm = ({
                         ))}
                     </SelectContent>
                 </Select>
-
                 <Button
                     onClick={onSubmit}
                     disabled={isSubmitDisabled}
