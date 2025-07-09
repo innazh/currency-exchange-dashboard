@@ -9,8 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "api": "cd api && venv/bin/flask run --no-debugger --port=5001",
-    "api-prod": "cd api && venv/bin/gunicorn -w 2 -b 0.0.0.0:5001 server:app",
-    "api-prod2": "cd api && gunicorn -w 2 -b 0.0.0.0:5001 server:app"
+    "api-prod": "cd api && gunicorn -w 2 -b 0.0.0.0:5001 server:app"
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.2.5",
