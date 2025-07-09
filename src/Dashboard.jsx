@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 import {
   Tooltip,
@@ -10,8 +10,27 @@ import {
 import CurrencyExchangeForm from './CurrencyExchangeForm';
 import HistoricalExchangeLineChart from './Chart';
 import CurrencyTable from './CurrencyTable';
-import { addDays, subMonths, subYears, formatDate } from './lib/dates';
+import { calculateFromDate } from './lib/dates';
 import { AVAILABLE_CURRENCIES } from './lib/constants.js';
+
+const prepChartData = (data, selectedPairs) => {
+  return selectedPairs.map((pair, idx) => {
+    const values = Object.values(data.data[pair] || {});
+    const colors = [
+      'rgb(56, 189, 248)',
+      'rgb(45, 212, 191)',
+      'rgb(5, 150, 105)',
+    ];
+    return {
+      label: pair,
+      data: values,
+      borderColor: colors[idx % colors.length],
+      backgroundColor: `${colors[idx % colors.length].replace('rgb', 'rgba').replace(')', ', 0.2)')}`,
+      tension: 0.2,
+      pointRadius: 2,
+    };
+  });
+}
 
 const Dashboard = () => {
   const [selectedPairs, setSelectedPairs] = useState([]);
@@ -21,67 +40,45 @@ const Dashboard = () => {
   const lastSubmittedRef = useRef({ pairs: '', period: '' });
   const [tableData, setTableData] = useState({});
 
-  const periods = {
-    '7 days': 7,
-    '1 month': 1,
-    '3 months': 3,
-    '6 months': 6,
-    '1 year': 1,
-    '2 years': 2,
-  };
+  const updateUrlParams = (pairs, period) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set('pairs', pairs.join(','));
+    queryParams.set('period', period);
+    window.history.replaceState({}, '', `${window.location.pathname}?${queryParams}`);
+  }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (existingPairParam, existingPeriodParam) => {
+    const pairsToSubmit = existingPairParam !== null && existingPairParam !== undefined
+      ? existingPairParam
+      : selectedPairs;
+
+    const periodToSubmit = existingPeriodParam !== null && existingPeriodParam !== undefined
+      ? existingPeriodParam
+      : reportingPeriod;
+
     // Check if same values were already submitted
     // Could be optimized so that if only one pair has changed, we just fetch that one pair instead of all pairs
-    if (
-      lastSubmittedRef.current.pairs === selectedPairs.join(',') &&
-      lastSubmittedRef.current.period === reportingPeriod
-    ) {
+    if (lastSubmittedRef.current.pairs === pairsToSubmit.join(',') && lastSubmittedRef.current.period === periodToSubmit) {
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const today = new Date();
-      let startDate;
+      const fromDate = calculateFromDate(periodToSubmit);
 
-      if (reportingPeriod.includes('day')) {
-        startDate = addDays(today, -periods[reportingPeriod]);
-      } else if (reportingPeriod.includes('month')) {
-        startDate = subMonths(today, periods[reportingPeriod]);
-      } else if (reportingPeriod.includes('year')) {
-        startDate = subYears(today, periods[reportingPeriod]);
-      }
-
-      const formattedDate = formatDate(startDate);
-
-      const pairParams = selectedPairs.map(pair => `pair=${encodeURIComponent(pair)}`).join('&');
-      const res = await fetch(`/api/rates?${pairParams}&from=${formattedDate}`);
+      const pairParams = pairsToSubmit.map(pair => `pair=${encodeURIComponent(pair)}`).join('&');
+      const res = await fetch(`/api/rates?${pairParams}&from=${fromDate}`);
       const data = await res.json();
       console.log('API Response:', data);
 
-      const firstPair = selectedPairs[0];
+      const firstPair = pairsToSubmit[0];
       const ratesForFirstPair = data.data[firstPair] || {};
       const labels = Object.keys(ratesForFirstPair);
 
-      const datasets = selectedPairs.map((pair, idx) => {
-        const values = Object.values(data.data[pair] || {});
-        const colors = [
-          'rgb(56, 189, 248)',
-          'rgb(45, 212, 191)',
-          'rgb(5, 150, 105)',
-        ];
-        return {
-          label: pair,
-          data: values,
-          borderColor: colors[idx % colors.length],
-          backgroundColor: `${colors[idx % colors.length].replace('rgb', 'rgba').replace(')', ', 0.2)')}`,
-          tension: 0.2,
-          pointRadius: 2,
-        };
-      });
+      const datasets = prepChartData(data, pairsToSubmit);
 
+      // set data, persist form input as query params
       setChartData({
         labels,
         datasets,
@@ -90,15 +87,35 @@ const Dashboard = () => {
       setTableData(data.data);
 
       lastSubmittedRef.current = {
-        pairs: selectedPairs.join(','),
-        period: reportingPeriod,
+        pairs: pairsToSubmit.join(','),
+        period: periodToSubmit,
       };
+
+      updateUrlParams(pairsToSubmit, periodToSubmit);
+
     } catch (err) {
       console.error('API Error:', err);
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pairsParam = params.get('pairs');
+    const periodParam = params.get('period');
+
+    if (pairsParam) {
+      setSelectedPairs(pairsParam.split(','));
+    }
+
+    if (periodParam) {
+      setReportingPeriod(periodParam);
+    }
+    if (pairsParam && periodParam) {
+      handleSubmit(pairsParam.split(','), periodParam);
+    }
+  }, []);
 
   return (
     <div className="max-w-4xl px-4 mx-auto mt-4 md:px-0 flex flex-col space-y-4">
@@ -129,11 +146,11 @@ const Dashboard = () => {
         setSelectedPairs={setSelectedPairs}
         reportingPeriod={reportingPeriod}
         setReportingPeriod={setReportingPeriod}
-        onSubmit={handleSubmit}
+        onSubmit={() => handleSubmit()}
         isLoading={isLoading}
       />
       <HistoricalExchangeLineChart chartData={chartData} />
-      {lastSubmittedRef.current.pairs!='' && <CurrencyTable data={tableData} pairs={selectedPairs} />}
+      {lastSubmittedRef.current.pairs != '' && <CurrencyTable data={tableData} pairs={selectedPairs} />}
     </div>
   );
 
