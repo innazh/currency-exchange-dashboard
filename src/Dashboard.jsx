@@ -101,7 +101,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-4 flex flex-col space-y-4">
+    <div className="max-w-4xl px-4 mx-auto mt-4 md:px-0 flex flex-col space-y-4">
       <h1 className="mb-4 text-4xl capitalize font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Historical currency exchange <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">data dashboard</span></h1>
 
       <div className="flex flex-wrap gap-2">
