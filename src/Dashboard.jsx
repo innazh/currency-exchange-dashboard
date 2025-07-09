@@ -133,7 +133,7 @@ const Dashboard = () => {
         isLoading={isLoading}
       />
       <HistoricalExchangeLineChart chartData={chartData} />
-      {tableData && <CurrencyTable data={tableData} pairs={selectedPairs} />}
+      {lastSubmittedRef.current.pairs!='' && <CurrencyTable data={tableData} pairs={selectedPairs} />}
     </div>
   );
 
