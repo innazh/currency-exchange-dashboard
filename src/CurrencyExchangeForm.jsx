@@ -6,7 +6,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Card, CardContent } from '@components/ui/card';
 import { Button } from '@components/ui/button';
 
-import { CURRENCY_PAIRS } from './lib/constants.js';
+import { CURRENCY_PAIRS, TIME_PERIODS } from './lib/constants.js';
 
 const CurrencyExchangeForm = ({
     selectedPairs,
@@ -16,22 +16,20 @@ const CurrencyExchangeForm = ({
     onSubmit,
     isLoading = false,
 }) => {
-    const periods = {
-        '7 days': 7,
-        '1 month': 1,
-        '3 months': 3,
-        '6 months': 6,
-        '1 year': 1,
-        '2 years': 2,
-    };
 
     const isSubmitDisabled = !selectedPairs.length || !reportingPeriod || isLoading;
+
+    const resetParams = () => {
+        setSelectedPairs([]);
+        setReportingPeriod('');
+        window.history.replaceState({}, '', window.location.pathname);
+    }
 
     return (
         <Card>
             <CardContent className="flex justify-center flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
                 <ReactSelect
-                className='z-50'
+                    className='z-50'
                     isMulti
                     options={CURRENCY_PAIRS.map(pair => ({ value: pair, label: pair }))}
                     value={selectedPairs.map(pair => ({ value: pair, label: pair }))}
@@ -45,13 +43,14 @@ const CurrencyExchangeForm = ({
                         <SelectValue placeholder="Reporting period" />
                     </SelectTrigger>
                     <SelectContent>
-                        {Object.keys(periods).map((period) => (
+                        {Object.keys(TIME_PERIODS).map((period) => (
                             <SelectItem key={period} value={period}>
                                 {period}
                             </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
+                <div className='flex flex-col md:flex-row gap-1.5'>
                 <Button
                     onClick={onSubmit}
                     disabled={isSubmitDisabled}
@@ -59,6 +58,8 @@ const CurrencyExchangeForm = ({
                 >
                     {isLoading ? 'Loading...' : 'Submit'}
                 </Button>
+                <Button variant='destructive' onClick={resetParams}>Reset</Button>
+                </div>
             </CardContent>
         </Card>
     );
