@@ -45,6 +45,7 @@ const CurrencyTable = ({ data, pairs }) => {
       );
       setRowData(transformed);
     }
+    // Coooould also implement grouping by currency here
   }, [data, pairs]);
 
   // Load table settings if they exist in local storage
