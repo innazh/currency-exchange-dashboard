@@ -39,7 +39,7 @@ const HistoricalExchangeLineChart = ({ chartData }) => {
                                             return `${datasetLabel}: ${value}`;
                                         },
                                     },
-                                    displayColors: false,
+                                    displayColors: true,
                                     bodyFont: { weight: 'normal' },
                                     titleFont: { weight: 'bold' },
                                 },
