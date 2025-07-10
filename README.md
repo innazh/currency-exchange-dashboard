@@ -14,10 +14,13 @@ If you are developing a production application, we recommend using TypeScript wi
 ## To run:
 You can open two terminal windows and run npm run dev in one to start the front end, and npm run api in the other to start the back end.
 
-Optional Features – Not Required
-• Implement functionality to save API call data to a database for future use. So, an
-API call is not required to use the Frankfurter API each time.
-• Setup a function– this doesn’t have to be functional but in theory would run on the
-first of each month and add the new exchange rate data for the previous month.
-• Any additional features or improvements you believe would enhance the dashboard
-functionality or user experience.
+# Features completed:
+## General Features
+- ✔️ Utilize the Frankfurter API to fetch historical currency exchange rate data.
+- ✔️ Render the fetched data in a chart using Chart.js.
+- ✔️ Render the fetched data in a table using ag-Grid with filtering. Persist grid settings on refresh.
+- ✔️ The ability to show one or multiple currencies in the charts.
+## Optional Features – Not Required
+- ✔️ Implement functionality to save API call data to a database for future use. So, an API call is not required to use the Frankfurter API each time.
+- Setup a function - this doesn’t have to be functional but in theory would run on the first of each month and add the new exchange rate data for the previous month.
+- Any additional features or improvements you believe would enhance the dashboard functionality or user experience.
