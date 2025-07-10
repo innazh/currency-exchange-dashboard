@@ -1,10 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
-import requests
-from datetime import datetime, timezone
-from dateutil.relativedelta import relativedelta
 from db import init_db, close_db
-
-FRANKFURTER_API = "https://api.frankfurter.dev/v1"
+from exchange_rates import validate_request_args, fetch_frankfurter_data
 
 app = Flask(__name__,  static_folder='../dist', static_url_path='/')
 
@@ -14,45 +10,17 @@ def home():
 
 @app.route('/api/rates', methods=['GET'])
 def get_exchange_rates():
-    pairs = request.args.getlist('pair')
-    if not pairs:
-        return jsonify({"error": "At least one currency pair must be provided"}), 400
-    #note: currently not restricting requests to currency pairs other than usd,cad,eur
+    is_valid, error, data = validate_request_args(request.args)
+    if not is_valid:
+        return jsonify(error), 400
 
-    # parse and validate the dates:
-    from_str = request.args.get('from')
-    if not from_str:
-        return jsonify({"error": "'from' date is required (format: YYYY-MM-DD)"}), 400
-    from_date = datetime.strptime(from_str, '%Y-%m-%d').date() # convert to date
-
-    today = datetime.now(timezone.utc).date()
-
-    two_years_ago = today - relativedelta(years=2) # this is how far back we can go
-    # note: I noticed a niche error with querying for the 2 years mark around midnught EST time. Proooobably has to do with the timezones.
-    
-    if from_date < two_years_ago:
-        return jsonify({"error": "this api can only provide the data up to 2 years ago."}), 400
-
-    from_date = from_date.isoformat()
-    to_date = today.isoformat()
+    from_date = data["from_date"].isoformat()
+    to_date = data["to_date"].isoformat()
     
     results = {}
-    for pair in pairs:
-        try:
-            base, target = pair.upper().split("/")
-            url = f"{FRANKFURTER_API}/{from_date}..{to_date}"
-            params = {"from": base, "to": target}
-            response = requests.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
-
-            rates = {
-                date: rate[target]
-                for date, rate in data.get("rates", {}).items()
-            }
-            results[pair] = rates
-        except Exception as e:
-            results[pair] = {"error": str(e)}
+    for pair in data["pairs"]:
+        key, value = fetch_frankfurter_data(pair, from_date, to_date)
+        results[key] = value
 
     return jsonify({
         "from": from_date,
@@ -62,7 +30,6 @@ def get_exchange_rates():
 
 @app.teardown_appcontext
 def teardown(exception):
-    print("Teardown: closed the database connection.")
     close_db()
 
 with app.app_context():
