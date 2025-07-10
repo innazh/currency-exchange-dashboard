@@ -13,46 +13,48 @@ def home():
 
 @app.route("/api/rates", methods=["GET"])
 def get_exchange_rates():
-    success, error, data = validate_request_args(request.args)
+    success, error, args_dict = validate_request_args(request.args)
     if not success:
         return jsonify(error), 400
 
-    from_date = data["from_date"].isoformat()
-    to_date = data["to_date"].isoformat()
+    from_date = args_dict["from_date"].isoformat()
+    to_date = args_dict["to_date"].isoformat()
 
     results = {}
     
     # iterate through all pairs
-    for pair in data["pairs"]:
-        # get existing rates from the db for this pair
-        cached_rates = get_rates_from_db(pair, from_date, to_date)
-        if cached_rates:
-            print(f"Loaded {len(cached_rates)} cached rates for {pair} from DB.")
-
-        # determine missing dates after cache retrieval
-        all_dates = set()
-        current = data["from_date"]
-        while current <= data["to_date"]:
-            all_dates.add(current.isoformat())
-            current += timedelta(days=1)
-
-        missing_dates = sorted(all_dates - cached_rates.keys())
-
-        if missing_dates:
-            # fetch missing interest rates within this range from api
-            missing_start_date = missing_dates[0]
-            missing_end_date = missing_dates[-1]
-            _, fetched_rates = fetch_frankfurter_data(pair, missing_start_date, missing_end_date)
-
-            # save fetched data to the db
-            save_rates_to_db(pair, fetched_rates)
-
-            # update cached dict (by merging fetched data into it)
-            cached_rates.update(fetched_rates)
-
-        results[pair] = cached_rates
+    for pair in args_dict["pairs"]:
+        results[pair] = process_currency_pair(pair, args_dict["from_date"], args_dict["to_date"])
 
     return jsonify({"from": from_date, "to": to_date, "data": results}), 200
+
+
+def get_missing_dates_list(start_date, end_date, cached_dates):
+    """Creates a set of all requested dates from start to end date, and returns the requested dates that are not contained in cached data so far. """
+    all_dates = set()
+    current = start_date
+    while current <= end_date:
+        all_dates.add(current.isoformat())
+        current += timedelta(days=1)
+
+    missing_dates = sorted(all_dates - cached_dates)
+    return missing_dates
+
+def process_currency_pair(pair, from_date, to_date):
+    cached_rates = get_rates_from_db(pair, from_date, to_date)
+    missing_dates = get_missing_dates_list(from_date, to_date, cached_rates.keys())
+
+    if missing_dates:
+        # fetch missing interest rates within this range from api
+        missing_start_date = missing_dates[0]
+        missing_end_date = missing_dates[-1]
+        _, fetched_rates = fetch_frankfurter_data(pair, missing_start_date, missing_end_date)
+
+        save_rates_to_db(pair, fetched_rates)
+
+        # merge fetched into cached
+        cached_rates.update(fetched_rates)
+    return cached_rates
 
 
 @app.teardown_appcontext
