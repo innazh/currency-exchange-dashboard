@@ -21,7 +21,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             currency_pair TEXT NOT NULL,
             date TEXT NOT NULL,
-            rate REAL NOT NULL
+            rate REAL NOT NULL,
+            UNIQUE(currency_pair, date)
         )
     ''')
     db.commit()
