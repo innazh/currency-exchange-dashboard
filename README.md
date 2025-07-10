@@ -14,12 +14,6 @@ If you are developing a production application, we recommend using TypeScript wi
 ## To run:
 You can open two terminal windows and run npm run dev in one to start the front end, and npm run api in the other to start the back end.
 
-Deploy:
-https://www.youtube.com/watch?v=qEfduVAQ8FQ
-
-!!!Persist grid settings
-on refresh!!!
-
 Optional Features – Not Required
 • Implement functionality to save API call data to a database for future use. So, an
 API call is not required to use the Frankfurter API each time.

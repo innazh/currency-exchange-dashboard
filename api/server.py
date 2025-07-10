@@ -1,13 +1,12 @@
-import time
 from flask import Flask, request, jsonify, send_from_directory
 import requests
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
-from urllib.parse import urlencode
-
-app = Flask(__name__,  static_folder='../dist', static_url_path='/')
+from db import init_db, close_db
 
 FRANKFURTER_API = "https://api.frankfurter.dev/v1"
+
+app = Flask(__name__,  static_folder='../dist', static_url_path='/')
 
 @app.route('/')
 def home():
@@ -34,14 +33,14 @@ def get_exchange_rates():
     if from_date < two_years_ago:
         return jsonify({"error": "this api can only provide the data up to 2 years ago."}), 400
 
-    paged_from = from_date.isoformat()
-    paged_to = today.isoformat()
+    from_date = from_date.isoformat()
+    to_date = today.isoformat()
     
     results = {}
     for pair in pairs:
         try:
             base, target = pair.upper().split("/")
-            url = f"{FRANKFURTER_API}/{paged_from}..{paged_to}"
+            url = f"{FRANKFURTER_API}/{from_date}..{to_date}"
             params = {"from": base, "to": target}
             response = requests.get(url, params=params)
             response.raise_for_status()
@@ -56,7 +55,15 @@ def get_exchange_rates():
             results[pair] = {"error": str(e)}
 
     return jsonify({
-        "from": paged_from,
-        "to": paged_to,
+        "from": from_date,
+        "to": to_date,
         "data": results
     }), 200
+
+@app.teardown_appcontext
+def teardown(exception):
+    print("Teardown: closed the database connection.")
+    close_db()
+
+with app.app_context():
+    init_db() # this will only create the db if it doesn't exist
