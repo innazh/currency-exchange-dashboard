@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 __pycache__
+data.db
 
 node_modules
 dist
