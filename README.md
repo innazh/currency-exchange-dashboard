@@ -1,4 +1,4 @@
-# React + Vite
+# Historical Currency Exchange Dashboard
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
@@ -13,6 +13,25 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ## To run:
 You can open two terminal windows and run npm run dev in one to start the front end, and npm run api in the other to start the back end.
+
+Pre-run:
+```
+npm install
+python3 -m venv api/venv
+source api/venv/bin/activate
+pip3 install -r api/requirements.txt
+```
+
+Start front-end:
+```
+npm run dev
+```
+
+Start back-end:
+```
+npm run api
+```
+
 
 # Features completed:
 ## General Features
