@@ -70,7 +70,6 @@ const Dashboard = () => {
       const pairParams = pairsToSubmit.map(pair => `pair=${encodeURIComponent(pair)}`).join('&');
       const res = await fetch(`/api/rates?${pairParams}&from=${fromDate}`);
       const data = await res.json();
-      console.log('API Response:', data);
 
       const firstPair = pairsToSubmit[0];
       const ratesForFirstPair = data.data[firstPair] || {};
